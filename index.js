@@ -3,7 +3,7 @@ const cors = require('cors')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express()
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 3000;
 
 // middleware
 app.use(cors())
@@ -31,18 +31,63 @@ async function run() {
     // const database = client.db("insertDB");
     // const haiku = database.collection("haiku");
     const coffeeCollection = client.db('coffeeDB').collection('coffee')
+    const userCollection = client.db('coffeeDB').collection('user')
+    
 
 
 
 
 
-  // send data in server from here
+  // send __COFFEE__ data in server from here
   app.post('/coffee', async(req, res)=> {
     const newCoffee = req.body
     console.log(newCoffee);
     const result = await coffeeCollection.insertOne(newCoffee);
     res.send(result)
   })
+
+  // USER 
+
+  // get READ ?
+  app.get('/user', async(req, res)=> {
+    const cursor = userCollection.find()
+    const users = await cursor.toArray()
+    res.send(users)
+  })
+
+  app.post('/user' , async(req, res) => {
+    const user = req.body
+    console.log(user);
+    const result = await userCollection.insertOne(user)
+    res.send(result)
+  })
+// delete 
+app.delete('/user/:id', async(req, res)=> {
+  const id = req.params.id
+  const query = {_id : new ObjectId(id)}
+  const result = await userCollection.deleteOne(query)
+  res.send(result)
+})
+
+
+// update 
+  app.patch('/user', async(req, res)=> {
+    const user = req.body
+    const filter = {email : user.email}
+    const updatedDoc = {
+      $set : {
+        lastLoggedAt  : user.lastLoggedAt
+      }
+    }
+    const result = await userCollection.updateOne(filter, updatedDoc)
+    res.send(result)
+  })
+
+
+
+
+
+
 
 
   // data show in client site (---- READ[many]----)
@@ -63,7 +108,7 @@ async function run() {
     res.send(result)
   })
 
-
+// update 
   app.put('/coffee/:id', async(req, res) => {
     const id = req.params.id
     const filter = {_id : new ObjectId(id)}
